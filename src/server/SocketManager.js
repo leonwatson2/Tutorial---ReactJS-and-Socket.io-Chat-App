@@ -2,13 +2,17 @@ const io = require('./index.js').io
 
 const { VERIFY_USER, USER_CONNECTED, USER_DISCONNECTED, 
 		LOGOUT, COMMUNITY_CHAT, MESSAGE_RECIEVED, MESSAGE_SENT,
-		TYPING  } = require('../Events')
+		TYPING, PRIVATE_MESSAGE  } = require('../Events')
 
-const { createUser, createMessage, createChat } = require('../Factories')
+const { createUser, createMessage, createChat, addMessageToChat } = require('../Factories')
 
 let connectedUsers = { }
 
 let communityChat = createChat()
+
+let chats = {
+	[communityChat.id]:communityChat	
+}
 
 module.exports = function(socket){
 					
@@ -24,7 +28,7 @@ module.exports = function(socket){
 		if(isUser(connectedUsers, nickname)){
 			callback({ isUser:true, user:null })
 		}else{
-			callback({ isUser:false, user:createUser({name:nickname})})
+			callback({ isUser:false, user:createUser({name:nickname, socketId:socket.id})})
 		}
 	})
 
@@ -33,11 +37,13 @@ module.exports = function(socket){
 		connectedUsers = addUser(connectedUsers, user)
 		socket.user = user
 
-		sendMessageToChatFromUser = sendMessageToChat(user.name)
+		sendMessageToChatFromUser = sendMessageToChat(user.name, chats)
 		sendTypingFromUser = sendTypingToChat(user.name)
-
+		
 		io.emit(USER_CONNECTED, connectedUsers)
 		console.log(connectedUsers);
+		
+		
 
 	})
 	
@@ -64,13 +70,22 @@ module.exports = function(socket){
 	socket.on(COMMUNITY_CHAT, (callback)=>{
 		callback(communityChat)
 	})
-
+	
 	socket.on(MESSAGE_SENT, ({chatId, message})=>{
-		sendMessageToChatFromUser(chatId, message)
+		chats[chatId] = sendMessageToChatFromUser(chatId, message)
+		console.log("change",chats[chatId])
 	})
 
 	socket.on(TYPING, ({chatId, isTyping})=>{
 		sendTypingFromUser(chatId, isTyping)
+	})
+
+	socket.on(PRIVATE_MESSAGE, ({reciever, sender, message})=>{
+		//create a new chat
+		//find reciever
+		//send socket private message
+		//send chat to users in chat
+		//add chat to all chats 
 	})
 
 }
@@ -92,9 +107,14 @@ function sendTypingToChat(user){
 * @param sender {string} username of sender
 * @return function(chatId, message)
 */
-function sendMessageToChat(sender){
+function sendMessageToChat(sender, chats){
 	return (chatId, message)=>{
-		io.emit(`${MESSAGE_RECIEVED}-${chatId}`, createMessage({message, sender}))
+		if(chatId in chats){
+			let oldChat = chats[chatId]
+			oldChat.messages = addMessageToChat(oldChat, createMessage({message, sender}))	
+			io.emit(`${MESSAGE_RECIEVED}-${chatId}`, createMessage({message, sender}))
+			return oldChat
+		}
 	}
 }
 
