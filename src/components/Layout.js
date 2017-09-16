@@ -3,8 +3,7 @@ import io from 'socket.io-client'
 import { USER_CONNECTED, LOGOUT } from '../Events'
 import LoginForm from './LoginForm'
 import ChatContainer from './chats/ChatContainer'
-
-const socketUrl = "http://localhost:3231"
+import { socketUrl } from '../config'
 export default class Layout extends Component {
 	
 	constructor(props) {
@@ -12,7 +11,8 @@ export default class Layout extends Component {
 	
 	  this.state = {
 	  	socket:null,
-	  	user:null
+		  user:null,
+		  connected:false
 	  };
 	}
 
@@ -27,7 +27,10 @@ export default class Layout extends Component {
 		const socket = io(socketUrl)
 
 		socket.on('connect', ()=>{
-			console.log("Connected");
+			this.setState({connected:true});
+		})
+		socket.on('disconnect', ()=>{
+			this.setState({connected:false});			
 		})
 		
 		this.setState({socket})
@@ -56,9 +59,10 @@ export default class Layout extends Component {
 
 	render() {
 		const { title } = this.props
-		const { socket, user } = this.state
+		const { socket, user, connected } = this.state
 		return (
 			<div className="container">
+				<div className={`status ${connected ? 'online':'offline'}`}></div>
 				{
 					!user ?	
 					<LoginForm socket={socket} setUser={this.setUser} />
