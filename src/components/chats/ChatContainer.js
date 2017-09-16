@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import SideBar from './SideBar'
-import { COMMUNITY_CHAT, MESSAGE_SENT, MESSAGE_RECIEVED, TYPING } from '../../Events'
+import { COMMUNITY_CHAT, MESSAGE_SENT, MESSAGE_RECIEVED, TYPING, PRIVATE_MESSAGE } from '../../Events'
 import ChatHeading from './ChatHeading'
 import Messages from '../messages/Messages'
 import MessageInput from '../messages/MessageInput'
@@ -15,7 +15,16 @@ export default class ChatContainer extends Component {
 	  	activeChat:null
 	  };
 	}
-
+	componentWillMount(){
+		this.initSocket()
+	}
+	initSocket(){
+		const { socket } = this.props
+		socket.on(PRIVATE_MESSAGE, this.addChat)
+		socket.on('connect', ()=>{
+			socket.emit(COMMUNITY_CHAT, this.resetChat)
+		}) //update chat on reconnect
+	}
 	componentDidMount() {
 		const { socket } = this.props
 		socket.emit(COMMUNITY_CHAT, this.resetChat)
@@ -37,7 +46,7 @@ export default class ChatContainer extends Component {
 	*	@param chat {Chat} the chat to be added.
 	*	@param reset {boolean} if true will set the chat as the only chat.
 	*/
-	addChat = (chat, reset)=>{
+	addChat = (chat, reset = false)=>{
 		const { socket } = this.props
 		const { chats } = this.state
 
@@ -102,6 +111,7 @@ export default class ChatContainer extends Component {
 	*/
 	sendMessage = (chatId, message)=>{
 		const { socket } = this.props
+		console.log(chatId, message)
 		socket.emit(MESSAGE_SENT, {chatId, message} )
 	}
 
@@ -113,6 +123,10 @@ export default class ChatContainer extends Component {
 	sendTyping = (chatId, isTyping)=>{
 		const { socket } = this.props
 		socket.emit(TYPING, {chatId, isTyping})
+	}
+	addPrivateMessage = (reciever) =>{
+		const { socket, user } = this.props
+		socket.emit(PRIVATE_MESSAGE, { reciever, sender:user.name })
 	}
 
 	setActiveChat = (activeChat)=>{
@@ -129,6 +143,7 @@ export default class ChatContainer extends Component {
 					user={user}
 					activeChat={activeChat}
 					setActiveChat={this.setActiveChat}
+					onAddPrivateMessage={this.addPrivateMessage}
 					/>
 				<div className="chat-room-container">
 					{

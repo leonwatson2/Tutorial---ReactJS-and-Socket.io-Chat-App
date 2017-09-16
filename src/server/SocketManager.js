@@ -34,17 +34,15 @@ module.exports = function(socket){
 
 	//User Connects with username
 	socket.on(USER_CONNECTED, (user)=>{
+		user.socketId = socket.id
 		connectedUsers = addUser(connectedUsers, user)
 		socket.user = user
 
-		sendMessageToChatFromUser = sendMessageToChat(user.name, chats)
+		sendMessageToChatFromUser = sendMessageToChat(user.name)
 		sendTypingFromUser = sendTypingToChat(user.name)
 		
 		io.emit(USER_CONNECTED, connectedUsers)
 		console.log(connectedUsers);
-		
-		
-
 	})
 	
 	//User disconnects
@@ -72,20 +70,26 @@ module.exports = function(socket){
 	})
 	
 	socket.on(MESSAGE_SENT, ({chatId, message})=>{
-		chats[chatId] = sendMessageToChatFromUser(chatId, message)
-		console.log("change",chats[chatId])
+		if(chatId in chats){
+			chats[chatId] = sendMessageToChatFromUser(chatId, message, chats)
+		}
 	})
 
 	socket.on(TYPING, ({chatId, isTyping})=>{
 		sendTypingFromUser(chatId, isTyping)
 	})
 
-	socket.on(PRIVATE_MESSAGE, ({reciever, sender, message})=>{
-		//create a new chat
-		//find reciever
-		//send socket private message
-		//send chat to users in chat
-		//add chat to all chats 
+	socket.on(PRIVATE_MESSAGE, ({reciever, sender})=>{
+		if(reciever in connectedUsers){
+			const newChat = createChat({name:`${reciever}&${sender}`, users:[reciever, sender]})
+			const recieverSocket = connectedUsers[reciever].socketId
+			socket.emit(PRIVATE_MESSAGE, newChat )
+			socket.to(recieverSocket).emit(PRIVATE_MESSAGE, newChat )
+			chats = addChat(chats, newChat)
+		}else{
+			console.log("Error:" + reciever  + " is not a user logged in.")
+			console.log(connectedUsers)
+		}
 	})
 
 }
@@ -100,15 +104,18 @@ function sendTypingToChat(user){
 		io.emit(`${TYPING}-${chatId}`, {user, isTyping})
 	}
 }
-
+function addChat(oldChats, newChat){
+	oldChats[newChat.id] = newChat
+	return oldChats
+}
 /*
 * Returns a function that will take a chat id and message
 * and then emit a broadcast to the chat id.
 * @param sender {string} username of sender
 * @return function(chatId, message)
 */
-function sendMessageToChat(sender, chats){
-	return (chatId, message)=>{
+function sendMessageToChat(sender){
+	return (chatId, message, chats)=>{
 		if(chatId in chats){
 			let oldChat = chats[chatId]
 			oldChat.messages = addMessageToChat(oldChat, createMessage({message, sender}))	

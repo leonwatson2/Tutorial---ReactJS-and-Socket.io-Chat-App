@@ -28,6 +28,8 @@ export default class Layout extends Component {
 
 		socket.on('connect', ()=>{
 			this.setState({connected:true});
+			if(this.state.user)
+				socket.emit(USER_CONNECTED, this.state.user)
 		})
 		socket.on('disconnect', ()=>{
 			this.setState({connected:false});			
