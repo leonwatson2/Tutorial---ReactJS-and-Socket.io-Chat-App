@@ -8,10 +8,11 @@ const uuidv4 = require('uuid/v4')
 *	@param {object} 
 *		name {string}
 */
-const createUser = ({name = ""} = {})=>(
+const createUser = ({name = "", socketId = null } = {})=>(
 	{
 		id:uuidv4(),
-		name
+		name,
+		socketId
 		
 	}
 )
