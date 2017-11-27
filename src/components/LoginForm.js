@@ -28,7 +28,7 @@ export default class LoginForm extends Component {
 		socket.emit(VERIFY_USER, nickname, this.setUser)
 	}
 
-	handleChange = (e)=>{
+	handleChange = (e)=>{	
 		this.setState({nickname:e.target.value})
 	}
 

@@ -45,22 +45,34 @@ const createMessage = ({message = "", sender = ""} = { })=>(
 * 	@prop name {string}
 * 	@prop messages {Array.Message}
 * 	@prop users {Array.string}
+*		@prop typingUsers {Array.string}
+*		@prop isCommunity {boolean}
 *	@param {object} 
 *		messages {Array.Message}
 *		name {string}
 *		users {Array.string}
 * 
 */
-const createChat = ({messages = [], name = "Community", users = []} = {})=>(
+const createChat = ({messages = [], name = "Community", users = [], isCommunity = false} = {})=>(
 	{
 		id:uuidv4(),
-		name,
+		name: isCommunity ? name : createChatNameFromUsers(users),
 		messages,
 		users,
-		typingUsers:[]
+		typingUsers:[],
+		isCommunity
 	}
 )
 
+/*
+* createChatNameFromUsers
+* @param users {Array.string} 
+* @param excludedUser {string} user to exclude from list of names
+* @return {string} users names concatenated by a '&' or "Empty Chat" if no users
+*/
+const createChatNameFromUsers = (users, excludedUser = "") => {
+	return users.filter(u => u !== excludedUser).join(' & ') || "Empty Chat"
+}
 
 /*
 *	@param date {Date}
@@ -73,6 +85,7 @@ const getTime = (date)=>{
 module.exports = {
 	createMessage,
 	createChat,
-	createUser
+	createUser,
+	createChatNameFromUsers
 }
 
