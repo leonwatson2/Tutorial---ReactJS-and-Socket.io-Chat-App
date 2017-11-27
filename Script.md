@@ -170,6 +170,16 @@ this.state = {
 			activeSideBar: SideBar.type.CHATS
 		}
 ```
+- Create activeSideBar method
+```js
+setActiveSideBar = (type) => {
+	this.setState({ activeSideBar:type })
+}
+```
+- Add conditional to output of lists
+```js
+activeSideBar === SideBar.type.CHATS ?
+```
 16. Check Application
 ### SocketManger.js
 17. Connect to backend, already has USER_CONNECTED emit
