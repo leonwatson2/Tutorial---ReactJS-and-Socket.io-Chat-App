@@ -55,7 +55,7 @@ static defaultProps = {
 ```html
  <div  
   className={`user ${active ? 'active' : ''}`}
-  onClick={ (e)=>{ onClick(e) } }
+  onClick={ onClick } }
   >
   <div className="user-photo">{ name[0].toUpperCase() }</div>
   <div className="user-info">
@@ -75,16 +75,16 @@ import { last, get } from 'lodash'
 9. Use the SideBarOption in render method
 ```jsx
 chats.map((chat)=>{
-							return(
-								<SideBarOption 
-									key = { chat.id }
-									lastMessage = { get(last(chat.messages), 'message', '') }
-									name = { chat.isCommunity ? chat.name : createChatNameFromUsers(chat, user.name) }
-									active = { activeChat.id === chat.id }
-									onClick = { ()=>{ this.props.setActiveChat(chat) } }
-									/>
-							)
-					})
+	return(
+		<SideBarOption 
+			key = { chat.id }
+			lastMessage = { get(last(chat.messages), 'message', '') }
+			name = { chat.isCommunity ? chat.name : createChatNameFromUsers(chat, user.name) }
+			active = { activeChat.id === chat.id }
+			onClick = { ()=>{ this.props.setActiveChat(chat) } }
+			/>
+	)
+})
 ```
 ### Factories.js
 8. Update createChat method to use isCommunity and createChatNameFromUsers
