@@ -132,6 +132,12 @@ differenceBy(users, [user], 'id').map((otherUser)=>{
   )
 })
 ```
+	- Create addChatForUser() function 
+```jsx
+addChatForUser(reciever){
+	this.props.onSendPrivateMessage(reciever)
+}
+```
 13. Add Buttons to choose between chats and users list
 
 ```jsx
