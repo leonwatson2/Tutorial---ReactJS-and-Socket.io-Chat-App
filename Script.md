@@ -210,4 +210,18 @@ componentWillUnmount(){
 		socket.off(USER_CONNECTED)
 	}
 ```
+21. pass in `users` to the SideBar
+```
+<SideBar
+	logout={logout}
+	chats={chats}
+	user={user}
+	users={users}
+	activeChat={activeChat}
+	setActiveChat={this.setActiveChat}
+	onSendPrivateMessage={this.sendOpenPrivateMessage}
+	/>
+```
+### SideBar.js
+22. Change fakeUsers to the users
 20. Check Application
