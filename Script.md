@@ -210,8 +210,17 @@ componentWillUnmount(){
 		socket.off(USER_CONNECTED)
 	}
 ```
-21. pass in `users` to the SideBar
+22. Add users to the default state
+```js
+this.state = {
+	chats:[],
+	activeChat:null,
+	users:[]
+}
 ```
+23. get users from state and pass in `users` to the SideBar
+```
+const { chats, activeChat, users } = this.state
 <SideBar
 	logout={logout}
 	chats={chats}
@@ -223,5 +232,5 @@ componentWillUnmount(){
 	/>
 ```
 ### SideBar.js
-22. Change fakeUsers to the users
-20. Check Application
+24. Change fakeUsers to the users
+25. Check Application
