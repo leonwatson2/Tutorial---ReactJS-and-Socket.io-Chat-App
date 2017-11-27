@@ -1,24 +1,23 @@
 const io = require('./index.js').io
 
 const { VERIFY_USER, USER_CONNECTED, USER_DISCONNECTED, 
-		LOGOUT, COMMUNITY_CHAT, MESSAGE_RECIEVED, MESSAGE_SENT,
-		TYPING, PRIVATE_MESSAGE  } = require('../Events')
+		LOGOUT, COMMUNITY_CHAT, MESSAGE_RECIEVED, 
+		MESSAGE_SENT, TYPING, PRIVATE_MESSAGE, NEW_CHAT_USER  } = require('../Events')
 
 const { createUser, createMessage, createChat } = require('../Factories')
 
 let connectedUsers = { }
 
-let communityChat = createChat()
+let communityChat = createChat({isCommunity:true})
 
 module.exports = function(socket){
-					
+	
 	// console.log('\x1bc'); //clears console
-	console.log("Socket Id:" + socket.id);
-
+	console.log("User Connected on: " + new Date().toLocaleString());
 	let sendMessageToChatFromUser;
-
+	
 	let sendTypingFromUser;
-
+	
 	//Verify Username
 	socket.on(VERIFY_USER, (nickname, callback)=>{
 		if(isUser(connectedUsers, nickname)){
@@ -46,12 +45,10 @@ module.exports = function(socket){
 	socket.on('disconnect', ()=>{
 		if("user" in socket){
 			connectedUsers = removeUser(connectedUsers, socket.user.name)
-
 			io.emit(USER_DISCONNECTED, connectedUsers)
 			console.log("Disconnect", connectedUsers);
 		}
 	})
-
 
 	//User logsout
 	socket.on(LOGOUT, ()=>{
@@ -82,6 +79,18 @@ module.exports = function(socket){
 				socket.to(recieverSocket).emit(PRIVATE_MESSAGE, newChat)
 				socket.emit(PRIVATE_MESSAGE, newChat)
 			}else{
+				//Send New User Name to other users to update chat
+				if(!(reciever in activeChat.users)){
+					activeChat.users
+					.filter( user => user in connectedUsers )
+					.map( user => connectedUsers[user] )
+					.map( user => {
+						console.log(user)
+						socket.to(user.socketId)
+						.emit(NEW_CHAT_USER, { chatId:activeChat.id, newUser: reciever })
+					})
+					socket.emit(NEW_CHAT_USER, { chatId:activeChat.id, newUser: reciever })									
+				}
 				socket.to(recieverSocket).emit(PRIVATE_MESSAGE, activeChat)
 			}
 		}

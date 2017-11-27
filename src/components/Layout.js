@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import io from 'socket.io-client'
-import { USER_CONNECTED, LOGOUT } from '../Events'
+import { USER_CONNECTED, LOGOUT, VERIFY_USER } from '../Events'
 import LoginForm from './LoginForm'
 import ChatContainer from './chats/ChatContainer'
 import { socketUrl } from '../config'
@@ -8,7 +8,7 @@ export default class Layout extends Component {
 	
 	constructor(props) {
 	  super(props);
-	
+		
 	  this.state = {
 	  	socket:null,
 	  	user:null
@@ -24,12 +24,20 @@ export default class Layout extends Component {
 	*/
 	initSocket = ()=>{
 		const socket = io(socketUrl)
-
-		socket.on('connect', ()=>{
-			console.log("Connected");
-		})
+		socket.on('connect', this.reInitialize)
 		
 		this.setState({socket})
+	}
+	reInitialize = ()=>{
+		const { user, socket } = this.state
+		if(user){
+			socket.emit(VERIFY_USER, user.name, ({isUser, user})=>{ 
+				if(isUser)
+					this.setUser(null)
+				else 
+					this.setUser(user)
+			})				
+		}
 	}
 
 	/*
@@ -54,7 +62,6 @@ export default class Layout extends Component {
 
 
 	render() {
-		const { title } = this.props
 		const { socket, user } = this.state
 		return (
 			<div className="container">

@@ -1,10 +1,17 @@
-import React, { Component } from 'react';
-import SideBar from './SideBar'
-import { COMMUNITY_CHAT, MESSAGE_SENT, MESSAGE_RECIEVED, TYPING, PRIVATE_MESSAGE } from '../../Events'
+import React, { Component } from 'react'
+import SideBar from '../sidebar/SideBar'
+import { COMMUNITY_CHAT, 
+					MESSAGE_SENT, 
+					MESSAGE_RECIEVED, 
+					TYPING, 
+					PRIVATE_MESSAGE, 
+					USER_CONNECTED,
+					NEW_CHAT_USER,
+					USER_DISCONNECTED } from '../../Events'
 import ChatHeading from './ChatHeading'
 import Messages from '../messages/Messages'
 import MessageInput from '../messages/MessageInput'
-
+import { values, differenceBy, difference } from 'lodash'
 
 export default class ChatContainer extends Component {
 	constructor(props) {
@@ -12,6 +19,7 @@ export default class ChatContainer extends Component {
 	
 	  this.state = {
 	  	chats:[],
+			users:[],
 	  	activeChat:null
 	  };
 	}
@@ -20,20 +28,52 @@ export default class ChatContainer extends Component {
 		const { socket } = this.props
 		this.initSocket(socket)
 	}
-
+	componentWillUnmount(){
+		const { socket } = this.props
+		socket.off(PRIVATE_MESSAGE)
+		socket.off(USER_DISCONNECTED)
+		socket.off(USER_CONNECTED)
+		socket.off(NEW_CHAT_USER)
+	}
 	initSocket(socket){
 		socket.emit(COMMUNITY_CHAT, this.resetChat)
 		socket.on(PRIVATE_MESSAGE, this.addChat)
 		socket.on('connect', ()=>{
 			socket.emit(COMMUNITY_CHAT, this.resetChat)
 		})
+		socket.on(USER_CONNECTED, (users)=>{
+			this.setState({ users:values(users) })
+		})
+		socket.on(USER_DISCONNECTED, (users)=>{
+			const removedUsers = differenceBy(this.state.users, values(users), 'id')
+			
+			this.removeUsersFromChat(removedUsers)
+			this.setState({ users:values(users) })
+		})
+		socket.on(NEW_CHAT_USER, this.addUserToChat)
 	}
 
+	addUserToChat = ({chatId, newUser})=>{
+		const { chats } = this.state
+		const newChats = chats.map(chat => {
+			if(chat.id === chatId)
+				return Object.assign({}, chat, { users: [...chat.users, newUser] })
+			return chat
+		})
+		this.setState({ chats:newChats })		
+	}
+	removeUsersFromChat = (removedUsers)=>{
+		const { chats } = this.state
+		const newChats = chats.map(chat => {
+			let newUsers = difference(chat.users, removedUsers.map(u=>u.name))
+			return Object.assign({}, chat , { users:newUsers })
+		})
+		this.setState({ chats:newChats })	
+	}
 	sendOpenPrivateMessage = (reciever) => {
 		const { socket, user } = this.props
 		const { activeChat } = this.state
 		socket.emit(PRIVATE_MESSAGE, {reciever, sender:user.name, activeChat})
-
 	}
 
 	/*
@@ -131,17 +171,19 @@ export default class ChatContainer extends Component {
 	}
 
 	setActiveChat = (activeChat)=>{
-		this.setState({activeChat})
+		if(activeChat !== this.state.activeChat )
+			this.setState({activeChat})
 	}
 	render() {
 		const { user, logout } = this.props
-		const { chats, activeChat } = this.state
+		const { chats, activeChat, users } = this.state
 		return (
 			<div className="container">
 				<SideBar
 					logout={logout}
 					chats={chats}
 					user={user}
+					users={users}
 					activeChat={activeChat}
 					setActiveChat={this.setActiveChat}
 					onSendPrivateMessage={this.sendOpenPrivateMessage}

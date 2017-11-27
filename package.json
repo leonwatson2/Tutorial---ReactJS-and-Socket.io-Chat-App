@@ -1,9 +1,10 @@
 {
   "name": "chat-app",
   "version": "0.1.0",
-  "homepage":"http://vlw2.com/chat",
+  "homepage": "http://vlw2.com/chat",
   "private": true,
   "dependencies": {
+    "lodash": "^4.17.4",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-icons": "^2.2.5",
@@ -17,10 +18,12 @@
     "server": "nodemon src/server/index.js",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "styles": "cp ../../react-chat-app/src/styles/index.css* ./src/"
   },
   "devDependencies": {
     "concurrently": "^3.5.0",
-    "nodemon": "^1.11.0"
+    "nodemon": "^1.11.0",
+    "why-did-you-update": "^0.1.0"
   }
 }
