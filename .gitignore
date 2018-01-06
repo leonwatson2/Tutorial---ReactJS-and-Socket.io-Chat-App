@@ -23,3 +23,4 @@ yarn-error.log*
 *.sh
 Script.md
 src/components/TODO.md
+.vscode/launch.json
