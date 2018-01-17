@@ -27,7 +27,11 @@ export default class Layout extends Component {
 		const socket = io(socketUrl)
 
 		socket.on('connect', ()=>{
-			console.log("Connected");
+			if(this.state.user){
+				this.reconnect(socket)
+			}else{
+				console.log("connected")
+			}
 		})
 		
 		this.setState({socket})
@@ -41,6 +45,18 @@ export default class Layout extends Component {
 		const { socket } = this.state
 		socket.emit(USER_CONNECTED, user);
 		this.setState({user})
+	}
+	/**
+	 * Reverifies user with socket and then resets user.
+	 */
+	reconnect = (socket) => {
+		socket.emit(VERIFY_USER, this.state.user.name, ({ isUser, user })=>{
+			if(isUser){
+				this.setState({ user:null })
+			}else{
+				this.setUser(user)
+			}
+		})
 	}
 
 	/*
