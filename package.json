@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "cors": "^2.8.5",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-icons": "^2.2.5",
@@ -11,7 +12,8 @@
     "uuid": "^3.1.0"
   },
   "scripts": {
-    "start": "concurrently 'npm run react' 'npm run server'",
+    "start": "node src/server/index.js",
+    "dev": "concurrently \"npm run react\" \"npm run server\"",
     "react": "react-scripts start",
     "server": "nodemon src/server/index.js",
     "build": "react-scripts build",
