@@ -1,7 +1,7 @@
 ##ReactJS and Socket.io Chat App Tutorial
 
 
-This is the code from a tutorial done on youtube [here](https://www.youtube.com/playlist?list=PLfUtdEcvGHFHdOYFXj4cY6ZIFkSp6MOuY).
+This is the code from a tutorial I created on youtube [here](https://www.youtube.com/playlist?list=PLfUtdEcvGHFHdOYFXj4cY6ZIFkSp6MOuY).
 
 ###Getting Started
 
